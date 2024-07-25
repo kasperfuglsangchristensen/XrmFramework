@@ -92,6 +92,7 @@
   <ItemGroup>
     <Compile Include="Containers\CsvContainer.cs" />
     <Compile Include="Helpers\ListExtension.cs" />
+    <Compile Include="Helpers\CsvHelper.cs" />
     <Compile Include="Jobs\ExampleInvokeManagerJob.cs" />
     <Compile Include="Jobs\ExampleReadFromCsvJob.cs" />
     <Compile Include="Jobs\ExampleWriteToCsvJob.cs" />

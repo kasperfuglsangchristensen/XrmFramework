@@ -1,4 +1,4 @@
-using System.Text;
+        using System.Text;
 using System.Reflection;
 using System.ComponentModel;
 
@@ -91,7 +91,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             for (int i = 0; i < attributeStrings.Length; ++i)
             {
                 var property = properties[i];
-                object? value = TypeConverter.FromString(property.PropertyType, attributeStrings[i]);
+                object? value = FromString(property.PropertyType, attributeStrings[i]);
                 property.SetValue(returnval, value);
             }
             return returnval;

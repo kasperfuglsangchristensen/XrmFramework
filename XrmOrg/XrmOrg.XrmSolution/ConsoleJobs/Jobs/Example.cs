@@ -12,7 +12,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Jobs
     internal class MyCsvFile
     {
         public string Name { get; set; }
-        [Header("Account Name")] //Add Header attribute if you want the CSV header to be different from the property name
+        [Header("Account ID")] //Add Header attribute if you want the CSV header to be different from the property name
         public Guid Id { get; set; }
         public Account_AccountRatingCode? AccountRatingCode { get; set; }
     }

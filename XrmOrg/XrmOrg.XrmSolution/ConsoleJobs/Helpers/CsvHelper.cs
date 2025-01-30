@@ -100,6 +100,11 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             var attributeStrings = item.Split(ConfigurationManager.AppSettings["CsvSeparator"].ToArray());
             var properties = typeof(T).GetProperties();
 
+            if (attributeStrings.Length != properties.Length)
+            {
+                throw new InvalidDataException("Number of columns in csv does not match number of properties in class");
+            }
+
             T returnval = new T();
             for (int i = 0; i < attributeStrings.Length; ++i)
             {

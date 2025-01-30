@@ -1,12 +1,16 @@
-using System.Text;
-using System.Reflection;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
 {
-    internal static class CsvHelper<T> where T : class, new()
+    internal static class CsvHelper
     {
-        public static void WriteToCsv(string filePath, IEnumerable<T> items, bool appendToFileIfExists = false)
+        public static void WriteToCsv<T>(string filePath, IEnumerable<T> items, bool appendToFileIfExists = false) where T : class, new()
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -18,11 +22,11 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             {
                 if (!appendToFileIfExists)
                 {
-                    writer.WriteLine(GetCsvHeader());
+                    writer.WriteLine(GetCsvHeader<T>());
                 }
                 foreach (var item in items)
                 {
-                    writer.WriteLine(ToCsv(item));
+                    writer.WriteLine(RowToCsv(item));
                 }
             }
             finally
@@ -31,7 +35,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             }
         }
 
-        public static IEnumerable<T> ReadFromCsv(string filePath, bool hasHeader = true)
+        public static List<T> ReadFromCsv<T>(string filePath, bool hasHeader = true) where T : class, new()
         {
             StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 
@@ -46,7 +50,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
                 }
                 while (res != null)
                 {
-                    returnList.Add(FromCsv(res));
+                    returnList.Add(RowFromCsv<T>(res));
                     res = reader.ReadLine();
                 }
             }
@@ -58,7 +62,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             return returnList;
         }
 
-        public static string GetCsvHeader()
+        public static string GetCsvHeader<T>() where T : class, new()
         {
             var properties = typeof(T).GetProperties();
             var strings = new string[properties.Length];
@@ -70,7 +74,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             return string.Join(ConfigurationManager.AppSettings["CsvSeparator"], strings);
         }
 
-        public static string ToCsv(T item)
+        public static string RowToCsv<T>(T item) where T : class, new()
         {
             var properties = typeof(T).GetProperties();
             var strings = new string[properties.Length];
@@ -82,26 +86,30 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             return string.Join(ConfigurationManager.AppSettings["CsvSeparator"], strings);
         }
 
-        public static T FromCsv(string item)
+        public static T RowFromCsv<T>(string item) where T : class, new()
         {
-            var attributeStrings = item.Split(ConfigurationManager.AppSettings["CsvSeparator"]);
+            var attributeStrings = item.Split(ConfigurationManager.AppSettings["CsvSeparator"].ToArray());
             var properties = typeof(T).GetProperties();
 
-            T returnval = new();
+            T returnval = new T();
             for (int i = 0; i < attributeStrings.Length; ++i)
             {
                 var property = properties[i];
-                object? value = FromString(property.PropertyType, attributeStrings[i]);
+                object value = FromString(property.PropertyType, attributeStrings[i]);
                 property.SetValue(returnval, value);
             }
             return returnval;
         }
 
-        private static object? FromString(Type type, string s)
+        private static object FromString(Type type, string s)
         {
             switch (Type.GetTypeCode(type))
             {
                 case TypeCode.Int32:
+                    if (type.IsEnum)
+                    {
+                        return Enum.Parse(type, s);
+                    }
                     return int.Parse(s);
                 case TypeCode.Int64:
                     return long.Parse(s);
@@ -116,6 +124,11 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
                 case TypeCode.Decimal:
                     return decimal.Parse(s);
                 case TypeCode.Object:
+                    if (Nullable.GetUnderlyingType(type) != null && !string.IsNullOrEmpty(s))
+                    {
+                        return FromString(Nullable.GetUnderlyingType(type), s);
+                    }
+
                     if (Guid.TryParse(s, out Guid res))
                     {
                         return res;

@@ -16,6 +16,8 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             {
                 throw new ArgumentException("File path is empty");
             }
+            FileInfo fi = new FileInfo(filePath);
+            Directory.CreateDirectory(fi.DirectoryName);
 
             StreamWriter writer = new StreamWriter(filePath, appendToFileIfExists, Encoding.UTF8);
             try

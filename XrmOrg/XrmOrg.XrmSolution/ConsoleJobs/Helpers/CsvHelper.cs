@@ -19,8 +19,7 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             FileInfo fi = new FileInfo(filePath);
             Directory.CreateDirectory(fi.DirectoryName);
 
-            StreamWriter writer = new StreamWriter(filePath, appendToFileIfExists, Encoding.UTF8);
-            try
+            using (StreamWriter writer = new StreamWriter(filePath, appendToFileIfExists, Encoding.UTF8))
             {
                 if (!appendToFileIfExists)
                 {
@@ -31,19 +30,14 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
                     writer.WriteLine(RowToCsv(item));
                 }
             }
-            finally
-            {
-                writer.Close();
-            }
         }
 
         public static List<T> ReadFromCsv<T>(string filePath, bool hasHeader = true) where T : class, new()
         {
-            StreamReader reader = new StreamReader(filePath, Encoding.UTF8);
 
             var returnList = new List<T>();
 
-            try
+            using (StreamReader reader = new StreamReader(filePath, Encoding.UTF8))
             {
                 var res = reader.ReadLine();
                 if (hasHeader && res != null)
@@ -55,10 +49,6 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
                     returnList.Add(RowFromCsv<T>(res));
                     res = reader.ReadLine();
                 }
-            }
-            finally
-            {
-                reader.Close();
             }
 
             return returnList;
@@ -76,8 +66,8 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
                 }
                 else
                 {
-                strings[i] = properties[i].Name;
-            }
+                    strings[i] = properties[i].Name;
+                }
             }
 
             return string.Join(ConfigurationManager.AppSettings["CsvSeparator"], strings);

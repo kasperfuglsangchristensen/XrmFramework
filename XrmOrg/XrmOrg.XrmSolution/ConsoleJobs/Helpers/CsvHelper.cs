@@ -68,7 +68,14 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
             var strings = new string[properties.Length];
             for (int i = 0; i < properties.Length; ++i)
             {
+                if (properties[i].GetCustomAttributes(typeof(HeaderAttribute), true).FirstOrDefault() is HeaderAttribute headerNameAttribute)
+                {
+                    strings[i] = headerNameAttribute.Name;
+                }
+                else
+                {
                 strings[i] = properties[i].Name;
+            }
             }
 
             return string.Join(ConfigurationManager.AppSettings["CsvSeparator"], strings);
@@ -141,6 +148,17 @@ namespace DG.XrmOrg.XrmSolution.ConsoleJobs.Helpers
                 default:
                     return TypeDescriptor.GetConverter(type).ConvertFromString(s);
             }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class HeaderAttribute : Attribute
+    {
+        public string Name { get; set; }
+
+        public HeaderAttribute(string name)
+        {
+            Name = name;
         }
     }
 }
